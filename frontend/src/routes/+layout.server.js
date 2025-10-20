@@ -17,7 +17,6 @@ export async function load({ fetch, url }) {
   });
 
   const user = await res.json();
-  console.log(user);
   if (user == null && !unprotectedRoutes.includes(url.pathname)) {
     console.log("Accessing a protected route with no credentials: " + url);
     throw redirect(307, '/');

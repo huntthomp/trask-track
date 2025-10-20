@@ -2,7 +2,7 @@ name: task-tracker
 services:
     db:
         image: postgres:16
-        container_name: task-traccker-db
+        container_name: task-tracker-db
         restart: unless-stopped
         environment:
             POSTGRES_USER: ${POSTGRES_USER}
@@ -18,7 +18,7 @@ services:
         build:
             context: .
             dockerfile: ./docker/Dockerfile.minio
-        container_name: task-traccker-filestore
+        container_name: task-tracker-filestore
         restart: unless-stopped
         ports:
             - "9000:9000"

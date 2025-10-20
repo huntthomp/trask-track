@@ -35,21 +35,25 @@
         isEditing = true;
         editName = data.calendarName;
         editColor = data.metadata.Color;
-        dispatch("editStart");
     }
 
     function handleDelete() {
-        dispatch("delete");
+        isEditing = false;
+        dispatch("delete", { id: data.calendarId });
     }
 
     function handleEditSave() {
         isEditing = false;
-        dispatch("editSave", { name: editName, color: editColor });
+        dispatch("edit", {
+            id: data.calendarId,
+            name: editName,
+            url: data.calendarIcsUrl,
+            color: editColor,
+        });
     }
 
     function handleEditCancel() {
         isEditing = false;
-        dispatch("editCancel");
     }
 </script>
 
@@ -90,6 +94,13 @@
             </div>
             <div class="flex gap-3 pt-2">
                 <button
+                    on:click={handleDelete}
+                    class="w-10 text-gray-500 border border-gray-700 rounded-lg flex justify-center items-center"
+                    aria-label="Remove calendar"
+                >
+                    <Trash2 size={18} color="#b33e3e" />
+                </button>
+                <button
                     on:click={handleEditCancel}
                     class="flex-1 px-4 py-2 text-gray-300 border border-gray-700 rounded-lg font-medium hover:bg-gray-800 transition-colors"
                 >
@@ -122,14 +133,14 @@
             <div class="ml-3 flex gap-1 flex-shrink-0">
                 <button
                     on:click={handleEdit}
-                    class="p-2 text-gray-500 hover:text-gray-300 hover:bg-gray-800 rounded-lg transition-colors"
+                    class="p-2 text-gray-500 rounded-lg transition-colors"
                     aria-label="Edit calendar"
                 >
                     <Edit2 size={18} />
                 </button>
                 <button
-                    on:click={handleDelete}
-                    class="p-2 text-gray-500 hover:text-red-400 hover:bg-red-950 rounded-lg transition-colors"
+                    on:click={handleEdit}
+                    class="p-2 text-gray-500 rounded-lg transition-colors"
                     aria-label="Remove calendar"
                 >
                     <Trash2 size={18} />

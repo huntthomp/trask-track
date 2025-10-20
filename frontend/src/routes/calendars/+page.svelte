@@ -15,7 +15,6 @@
 
     async function getCalendars() {
         try {
-            console.log("getting");
             const response = await fetch(
                 `${PUBLIC_BACKEND_HOST}/calendar/list`,
                 {
@@ -33,7 +32,7 @@
                 calendarName: cal.CalendarName,
                 calendarIcsUrl: cal.CalendarIcsUrl,
                 syncedAt: cal.SyncedAt,
-                metadata: JSON.parse(cal.Metadata),
+                metadata: cal.Metadata,
             }));
         } catch (err) {
             showToast(err.message, "error");
@@ -93,6 +92,58 @@
         }, 3000);
     }
 
+    async function handleEdit(e) {
+        const { id, name, url, color } = e.detail;
+
+        try {
+            const body = {
+                CalendarId: id,
+                CalendarName: name,
+                CalendarIcsUrl: url,
+                Metadata: {
+                    Color: color,
+                },
+            };
+
+            const response = await fetch(
+                `${PUBLIC_BACKEND_HOST}/calendar/update`,
+                {
+                    method: "PUT",
+                    credentials: "include",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(body),
+                },
+            );
+
+            if (!response.ok) throw new Error(await response.text());
+        } catch (err) {
+            showToast(err.message, "error");
+        } finally {
+            await getCalendars();
+        }
+    }
+
+    async function handleDelete(e) {
+        const { id } = e.detail;
+
+        try {
+            const response = await fetch(
+                `${PUBLIC_BACKEND_HOST}/calendar/${id}`,
+                {
+                    method: "DELETE",
+                    credentials: "include",
+                    headers: { "Content-Type": "application/json" },
+                },
+            );
+
+            if (!response.ok) throw new Error(await response.text());
+        } catch (err) {
+            showToast(err.message, "error");
+        } finally {
+            await getCalendars();
+        }
+    }
+
     onMount(() => {
         getCalendars();
     });
@@ -127,7 +178,11 @@
 {:else}
     <div class="px-[10px] flex flex-col gap-[10px]">
         {#each calendars as calendar}
-            <CalendarItem data={calendar} />
+            <CalendarItem
+                data={calendar}
+                on:edit={handleEdit}
+                on:delete={handleDelete}
+            />
         {/each}
     </div>
 {/if}

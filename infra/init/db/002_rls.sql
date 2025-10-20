@@ -17,3 +17,12 @@ CREATE POLICY allow_inserts ON user_data.calendars
 CREATE POLICY allow_select ON user_data.calendars
     FOR SELECT
     USING (user_id = (SELECT id FROM user_data.users WHERE auth0_user_id = current_setting('app.tenant')));
+
+CREATE POLICY allow_update ON user_data.calendars
+    FOR UPDATE
+    USING (user_id = (SELECT id FROM user_data.users WHERE auth0_user_id = current_setting('app.tenant')))
+    WITH CHECK (user_id = (SELECT id FROM user_data.users WHERE auth0_user_id = current_setting('app.tenant')));
+
+CREATE POLICY allow_delete ON user_data.calendars
+    FOR DELETE
+    USING (user_id = (SELECT id FROM user_data.users WHERE auth0_user_id = current_setting('app.tenant')));

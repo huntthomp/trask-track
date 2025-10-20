@@ -22,6 +22,86 @@
     let calendarName = "";
     let calendarUrl = "";
     let selectedColor = COLORS[0].hex;
+    let colorMode = "hex";
+
+    const hexToRgb = (hex) => {
+        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        return result
+            ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}`
+            : "0, 0, 0";
+    };
+
+    const rgbToHex = (rgb) => {
+        const values = rgb.match(/\d+/g);
+        if (!values || values.length !== 3) return selectedColor;
+        return (
+            "#" +
+            values
+                .map((x) => {
+                    const hex = parseInt(x).toString(16);
+                    return hex.length === 1 ? "0" + hex : hex;
+                })
+                .join("")
+        );
+    };
+
+    const hexToHsv = (hex) => {
+        const r = parseInt(hex.slice(1, 3), 16) / 255;
+        const g = parseInt(hex.slice(3, 5), 16) / 255;
+        const b = parseInt(hex.slice(5, 7), 16) / 255;
+
+        const max = Math.max(r, g, b);
+        const min = Math.min(r, g, b);
+        const delta = max - min;
+
+        let h = 0;
+        if (delta !== 0) {
+            if (max === r) h = ((g - b) / delta + (g < b ? 6 : 0)) / 6;
+            else if (max === g) h = ((b - r) / delta + 2) / 6;
+            else h = ((r - g) / delta + 4) / 6;
+        }
+
+        const s = max === 0 ? 0 : delta / max;
+        const v = max;
+
+        return `${Math.round(h * 360)}, ${Math.round(s * 100)}, ${Math.round(v * 100)}`;
+    };
+
+    const hsvToHex = (hsv) => {
+        const values = hsv.match(/\d+/g);
+        if (!values || values.length !== 3) return selectedColor;
+
+        const h = parseInt(values[0]) / 360;
+        const s = parseInt(values[1]) / 100;
+        const v = parseInt(values[2]) / 100;
+
+        const c = v * s;
+        const x = c * (1 - Math.abs(((h * 6) % 2) - 1));
+        const m = v - c;
+
+        let r, g, b;
+        if (h < 1 / 6) [r, g, b] = [c, x, 0];
+        else if (h < 2 / 6) [r, g, b] = [x, c, 0];
+        else if (h < 3 / 6) [r, g, b] = [0, c, x];
+        else if (h < 4 / 6) [r, g, b] = [0, x, c];
+        else if (h < 5 / 6) [r, g, b] = [x, 0, c];
+        else [r, g, b] = [c, 0, x];
+
+        const toHex = (n) => {
+            const hex = Math.round((n + m) * 255).toString(16);
+            return hex.length === 1 ? "0" + hex : hex;
+        };
+
+        return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+    };
+
+    const handleColorModeChange = (rgb) => {
+        if (colorMode === "rgb") {
+            selectedColor = rgbToHex(rgb);
+        } else if (colorMode === "hsv") {
+            selectedColor = hsvToHex(rgb);
+        }
+    };
 
     const handleClose = () => {
         isOpen = false;
@@ -36,7 +116,7 @@
             });
             calendarName = "";
             calendarUrl = "";
-            selectedColor = "blue";
+            selectedColor = COLORS[0].hex;
             isOpen = false;
         }
     };
@@ -90,20 +170,43 @@
 
             <div>
                 <p class="text-sm font-medium block mb-3">Color</p>
-                <div class="grid grid-cols-4 gap-3">
-                    {#each COLORS as color}
-                        <button
-                            on:click={() => (selectedColor = color.hex)}
-                            class={`w-full aspect-square rounded-lg transition-all ${
-                                selectedColor === color.hex
-                                    ? "ring-2 ring-offset-2 ring-gray-900 scale-105"
-                                    : "hover:scale-105"
-                            }`}
-                            style={`background-color: ${color.hex}`}
-                            title={color.name}
-                            aria-label={color.name}
-                        ></button>
-                    {/each}
+                <div class="flex gap-4">
+                    <input
+                        type="color"
+                        bind:value={selectedColor}
+                        class="w-[150px] h-[150px] border border-gray-700 rounded-lg cursor-pointer flex-shrink-0"
+                    />
+                    <div class="flex-1 space-y-3">
+                        <div class="flex flex-col">
+                            <label for="hex" class="text-sm font-medium mb-2"
+                                >Hex</label
+                            >
+                            <input
+                                id="hex"
+                                type="text"
+                                value={selectedColor}
+                                on:change={(e) =>
+                                    (selectedColor = e.target.value)}
+                                maxlength="7"
+                                class="px-3 py-2 border border-gray-700 rounded-lg text-sm bg-gray-800 text-white font-mono focus:outline-none focus:ring-2 focus:ring-[#5a8759] focus:border-transparent"
+                                placeholder="#5a8759"
+                            />
+                        </div>
+                        <div class="flex flex-col">
+                            <label for="rgb" class="text-sm font-medium mb-2"
+                                >RGB</label
+                            >
+                            <input
+                                id="rgb"
+                                type="text"
+                                value={hexToRgb(selectedColor)}
+                                on:change={(e) =>
+                                    handleColorModeChange(e.target.value)}
+                                class="px-3 py-2 border border-gray-700 rounded-lg text-sm bg-gray-800 text-white font-mono focus:outline-none focus:ring-2 focus:ring-[#5a8759] focus:border-transparent"
+                                placeholder="255, 128, 0"
+                            />
+                        </div>
+                    </div>
                 </div>
             </div>
 

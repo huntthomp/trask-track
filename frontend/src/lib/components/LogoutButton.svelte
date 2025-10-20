@@ -7,7 +7,6 @@
 
     onMount(() => {
         returnUrl = `${window.location.origin}`;
-        console.log(returnUrl);
     });
 </script>
 

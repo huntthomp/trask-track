@@ -6,7 +6,6 @@
 
     onMount(() => {
         returnUrl = `${window.location.origin}/profile`;
-        console.log(returnUrl);
     });
 </script>
 
