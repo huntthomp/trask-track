@@ -9,27 +9,50 @@ services:
             POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
             POSTGRES_DB: ${POSTGRES_DB}
         ports:
-            - "5432:5432"
+            - "5432:5432" # Allow PG admin to connect
         volumes:
             - postgres_data:/var/lib/postgresql/data
             - ./init/db:/docker-entrypoint-initdb.d
+        networks:
+            - app-network
 
-    filestore:
+    #filestore:
+    #    build:
+    #        context: ..
+    #        dockerfile: infra/docker/Dockerfile.minio
+    #    container_name: task-tracker-filestore
+    #    restart: unless-stopped
+    #    environment:
+    #        MINIO_ROOT_USER: ${MINIO__USERNAME}
+    #        MINIO_ROOT_PASSWORD: ${MINIO__PASSWORD}
+    #    volumes:
+    #        - filestore_data:/data
+    #        - ./init/minio:/docker-entrypoint-init.d
+    #    networks:
+    #        - app-network
+
+    app-server:
         build:
-            context: .
-            dockerfile: ./docker/Dockerfile.minio
-        container_name: task-tracker-filestore
+            context: ..
+            dockerfile: infra/docker/Dockerfile.appserver
+        container_name: task-tracker-app-server
         restart: unless-stopped
-        ports:
-            - "9000:9000"
-            - "9001:9001"
         environment:
-            MINIO_ROOT_USER: ${MINIO_ROOT_USER}
-            MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
-        volumes:
-            - filestore_data:/data
-            - ./init/minio:/docker-entrypoint-init.d
+            DEFAULT_CONNECTION_STRING: ${DEFAULT_CONNECTION_STRING}
+            ADMIN_CONNECTION_STRING: ${ADMIN_CONNECTION_STRING}
+            FRONTEND_ORIGIN: ${FRONTEND_ORIGIN}
+            AUTH0_DOMAIN: ${AUTH0_DOMAIN}
+            AUTH0_CLIENT_ID: ${AUTH0_CLIENT_ID}
+            AUTH0_CLIENT_SECRET: ${AUTH0_CLIENT_SECRET}
+        ports:
+            - "8081:8081"
+        networks:
+            - app-network
 
 volumes:
     filestore_data:
     postgres_data:
+
+networks:
+    app-network:
+        driver: bridge

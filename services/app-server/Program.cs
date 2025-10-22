@@ -1,28 +1,35 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
-using DotNetEnv;
 using Npgsql;
-using System.Net;
 using TaskTrack.AppServer.Repositories;
 using TaskTrack.Shared.Repositories;
 
-var dotenvPath = Environment.GetEnvironmentVariable("DOTENV_PATH") ?? ".env";
-Env.Load(dotenvPath);
+string defaultConnectionString = Environment.GetEnvironmentVariable("DEFAULT_CONNECTION_STRING") ?? "";
+string adminConnectionString = Environment.GetEnvironmentVariable("ADMIN_CONNECTION_STRING") ?? "";
+string auth0Domain = Environment.GetEnvironmentVariable("AUTH0_DOMAIN") ?? "";
+string auth0ClientId = Environment.GetEnvironmentVariable("AUTH0_CLIENT_ID") ?? "";
+string auth0ClientSecret = Environment.GetEnvironmentVariable("AUTH0_CLIENT_SECRET") ?? "";
+string frontendOrigin = Environment.GetEnvironmentVariable("FRONTEND_ORIGIN") ?? "";
 
-var builder = WebApplication.CreateBuilder(new WebApplicationOptions());
+var builder = WebApplication.CreateBuilder(args);
+
+// Determine environment
+var env = builder.Environment;
 
 // --- CORS ---
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("http://172.20.10.6:5173")
+        var allowedOrigin = frontendOrigin;
+        policy.WithOrigins(allowedOrigin)
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
     });
 });
 
+// --- Authentication ---
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
@@ -32,71 +39,63 @@ builder.Services.AddAuthentication(options =>
 {
     options.Cookie.SameSite = SameSiteMode.Lax;
     options.Cookie.SecurePolicy = CookieSecurePolicy.None;
-
 })
 .AddOpenIdConnect(options =>
 {
-    options.Authority = builder.Configuration["Auth0:Domain"];
-    options.ClientId = builder.Configuration["Auth0:ClientId"];
-    options.ClientSecret = builder.Configuration["Auth0:ClientSecret"];
+    options.Authority = auth0Domain;
+    options.ClientId = auth0ClientId;
+    options.ClientSecret = auth0ClientSecret;
     options.ResponseType = "code";
-
     options.Scope.Clear();
     options.Scope.Add("openid");
     options.Scope.Add("profile");
     options.Scope.Add("email");
-
     options.CallbackPath = "/callback";
+
+    options.RequireHttpsMetadata = !env.IsDevelopment();
 
     options.Events = new OpenIdConnectEvents
     {
         OnRedirectToIdentityProvider = context =>
         {
-            // Forces a login prompt instead of silent login
             context.ProtocolMessage.Prompt = "login";
             return Task.CompletedTask;
         }
     };
 
-    options.RequireHttpsMetadata = false;
     options.TokenValidationParameters.NameClaimType = "name";
 });
 
 // --- Database ---
 builder.Services.AddSingleton<NpgsqlDataSource>(_ =>
 {
-    var dsBuilder = new NpgsqlDataSourceBuilder(builder.Configuration["DefaultConnectionString"]);
+    var dsBuilder = new NpgsqlDataSourceBuilder(defaultConnectionString);
     return dsBuilder.Build();
 });
 
 builder.Services.AddSingleton<IUserRepository, UserRepository>();
 builder.Services.AddSingleton<IUserCalendarRepository, UserCalendarRepository>();
-
-// --- Controllers ---
 builder.Services.AddControllers();
 
-// --- Kestrel (HTTP only for dev) ---
-builder.WebHost.ConfigureKestrel(options =>
+// --- Kestrel Configuration ---
+/* builder.WebHost.ConfigureKestrel(options =>
 {
-    options.Listen(IPAddress.Parse("172.20.10.6"), 5001, listenOptions =>
+    options.Listen(IPAddress.Any, 8081, listenOptions =>
     {
         listenOptions.UseHttps();
     });
-});
+}); */
 
 var app = builder.Build();
 
 app.UseCors("AllowFrontend");
-
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
-// --- Middleware ---
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
-// --- API routes ---
 app.MapControllers();
 
 app.Run();

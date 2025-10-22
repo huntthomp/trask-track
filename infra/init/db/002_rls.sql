@@ -9,7 +9,6 @@ CREATE POLICY allow_select ON user_data.users
     FOR SELECT
     USING (auth0_user_id = current_setting('app.tenant', true));
 
-
 CREATE POLICY allow_inserts ON user_data.calendars
     FOR INSERT
     WITH CHECK (user_id = (SELECT id FROM user_data.users WHERE auth0_user_id = current_setting('app.tenant')));

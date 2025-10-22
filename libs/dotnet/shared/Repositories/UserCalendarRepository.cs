@@ -31,11 +31,11 @@ public class UserCalendarRepository : IUserCalendarRepository
 
     public async Task<Guid> InsertAsync(ClaimsPrincipal user, NewUserCalendar userCalendar)
     {
-        if (string.IsNullOrWhiteSpace(userCalendar.Metadata.Color) || !Regex.IsMatch(userCalendar.Metadata.Color, ColorPattern))
+        if (string.IsNullOrWhiteSpace(userCalendar.Metadata.Color) || !Regex.IsMatch(userCalendar.Metadata.Color, ColorPattern, RegexOptions.IgnoreCase))
         {
             throw new Exception("Invalid color provided");
         }
-        if (string.IsNullOrWhiteSpace(userCalendar.CalendarIcsUrl) || !Regex.IsMatch(userCalendar.CalendarIcsUrl, IcsUrlPattern))
+        if (string.IsNullOrWhiteSpace(userCalendar.CalendarIcsUrl) || !Regex.IsMatch(userCalendar.CalendarIcsUrl, IcsUrlPattern, RegexOptions.IgnoreCase))
         {
             throw new Exception("Invalid calendar url provided");
         }
@@ -58,7 +58,7 @@ public class UserCalendarRepository : IUserCalendarRepository
         var publicId = await connection.ExecuteScalarAsync<Guid>(sql, new
         {
             CalendarName = userCalendar.CalendarName,
-            CalendarIcsUrl = userCalendar.CalendarIcsUrl,
+            CalendarIcsUrl = userCalendar.CalendarIcsUrl.ToLower(),
             Metadata = System.Text.Json.JsonSerializer.Serialize(userCalendar.Metadata),
         });
 
@@ -134,7 +134,7 @@ public class UserCalendarRepository : IUserCalendarRepository
         {
             throw new Exception("Invalid color provided");
         }
-        if (string.IsNullOrWhiteSpace(userCalendar.CalendarIcsUrl) || !Regex.IsMatch(userCalendar.CalendarIcsUrl, IcsUrlPattern))
+        if (string.IsNullOrWhiteSpace(userCalendar.CalendarIcsUrl) || !Regex.IsMatch(userCalendar.CalendarIcsUrl.ToLower(), IcsUrlPattern))
         {
             throw new Exception("Invalid calendar url provided");
         }
@@ -154,7 +154,7 @@ public class UserCalendarRepository : IUserCalendarRepository
         await connection.ExecuteAsync(sql, new
         {
             CalendarName = userCalendar.CalendarName,
-            CalendarIcsUrl = userCalendar.CalendarIcsUrl,
+            CalendarIcsUrl = userCalendar.CalendarIcsUrl.ToLower(),
             Metadata = System.Text.Json.JsonSerializer.Serialize(userCalendar.Metadata),
             PublicId = userCalendar.CalendarId,
         });

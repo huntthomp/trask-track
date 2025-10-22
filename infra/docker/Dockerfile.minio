@@ -1,9 +1,9 @@
 FROM minio/minio
 
-COPY ./init/minio/create-buckets.sh /usr/local/bin/create-buckets.sh
+COPY infra/init/minio/create-buckets.sh /usr/local/bin/create-buckets.sh
 RUN chmod +x /usr/local/bin/create-buckets.sh
 
-COPY ./init/minio/entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY infra/init/minio/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

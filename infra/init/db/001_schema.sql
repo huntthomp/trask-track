@@ -13,6 +13,7 @@ CREATE TABLE user_data.calendars (
     calendar_name TEXT NOT NULL,
     calendar_ics_url TEXT NOT NULL,
     synced_at TIMESTAMPTZ DEFAULT NULL,
+    sync_error BOOLEAN NOT NULL DEFAULT FALSE,
     metadata JSON NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 

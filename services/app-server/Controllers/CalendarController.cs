@@ -72,9 +72,8 @@ public class CalendarController : Controller
         {
             await usercalendarRepository.DeleteAsync(User, publicId);
         }
-        catch (Exception e)
+        catch
         {
-            Console.WriteLine(e);
             return StatusCode(StatusCodes.Status500InternalServerError,
             "An unexpected error occurred while deleting the calendar.");
         }

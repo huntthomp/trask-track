@@ -5,7 +5,7 @@ VisualStudioVersion = 17.5.2.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "services", "services", "{5854FF58-B8C5-05C6-5BF2-ACE42193F22B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskTracker.AppServer", "services\app-server\TaskTracker.AppServer.csproj", "{A8490142-2611-7166-A990-87C9994E6DEC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskTrack.AppServer", "services\app-server\TaskTrack.AppServer.csproj", "{A8490142-2611-7166-A990-87C9994E6DEC}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "calendar-service", "calendar-service", "{18DEA56A-2DF8-5AAF-777F-0E91E86C809E}"
 EndProject
