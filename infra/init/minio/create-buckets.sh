@@ -1,12 +1,11 @@
 #!/bin/sh
 set -e
 
-MC_USER=$MINIO_ROOT_USER
-MC_PASS=$MINIO_ROOT_PASSWORD
-
 echo "Creating market data bucket..."
 
-mc alias set local http://localhost:9000 "$MC_USER" "$MC_PASS"
+mc alias set local http://localhost:$MINIO_API_PORT "$MINIO_ROOT_USER" "$MINIO_ROOT_PASSWORD"
 mc mb -p local/user-calendars || true
+
+mc version enable local/user-calendars
 
 echo "Bucket created successfully."

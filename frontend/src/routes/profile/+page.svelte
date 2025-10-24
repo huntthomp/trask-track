@@ -1,5 +1,4 @@
 <script>
-  import { PUBLIC_BACKEND_HOST } from "$env/static/public";
   import { fly } from "svelte/transition";
   import LogoutButton from "$lib/components/LogoutButton.svelte";
   export let data;

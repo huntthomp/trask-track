@@ -1,7 +1,7 @@
+infra/.dev.env
+infra/.prod.env
+
 .vscode/
-.env
-**/Properties/launchSettings.json
-**/.env
 **build/
 **bin/
 **obj/

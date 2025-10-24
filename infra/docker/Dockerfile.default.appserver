@@ -1,0 +1,29 @@
+# Build Stage
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+WORKDIR /src
+
+COPY libs/dotnet/shared/TaskTrack.Shared.csproj ./libs/dotnet/shared/
+COPY services/app-server/TaskTrack.AppServer.csproj ./services/app-server/
+
+RUN dotnet restore ./services/app-server/TaskTrack.AppServer.csproj
+
+COPY libs/dotnet/shared/ ./libs/dotnet/shared/
+COPY services/app-server/ ./services/app-server/
+
+RUN dotnet publish ./services/app-server/TaskTrack.AppServer.csproj \
+    -c Release \
+    -o /app
+
+# Runtime Stage
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
+WORKDIR /app
+
+COPY --from=build /app .
+
+ARG BACKEND_PORT
+
+ENV ASPNETCORE_URLS="http://+:$BACKEND_PORT" \
+    ASPNETCORE_ENVIRONMENT=Production \
+    DOTNET_RUNNING_IN_CONTAINER=true
+
+ENTRYPOINT ["dotnet", "TaskTrack.AppServer.dll"]

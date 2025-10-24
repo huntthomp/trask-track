@@ -1,28 +1,40 @@
-import { Agent } from 'undici';
 import { redirect } from '@sveltejs/kit';
 import { setContext } from 'svelte';
-import { PUBLIC_BACKEND_HOST } from '$env/static/public';
 
-const agent = new Agent({ keepAliveTimeout: 1000, keepAliveMaxTimeout: 1000, connect: { rejectUnauthorized: false } });
-
-const unprotectedRoutes = [
-  "/",
-  "/login",
+const protectedRoutes = [
+    "/profile",
+    "/calendars",
+    "/settings",
 ];
 
-export async function load({ fetch, url }) {
-  const res = await fetch(`${PUBLIC_BACKEND_HOST}/account/me`, {
-    dispatcher: agent,
-    credentials: 'include'
-  });
+export async function load({ fetch, url, cookies }) {
+    const path = url.pathname;
+    const isProtected = protectedRoutes.some(route =>
+        path === route || path.startsWith(`${route}/`)
+    );
 
-  const user = await res.json();
+    const cookieHeader = cookies
+        .getAll()
+        .map(c => `${c.name}=${c.value}`)
+        .join('; ');
 
-  if (user == null && !unprotectedRoutes.includes(url.pathname)) {
-    console.log("Accessing a protected route with no credentials: " + url);
-    throw redirect(307, '/');
-  }
 
-  return { user };
+    const res = await fetch(`${process.env.BACKEND_HOST}/account/me`, {
+        credentials: 'include',
+        headers: { Cookie: cookieHeader }
+    });
 
+    const user = await res.json();
+
+    if (path === "/") {
+        if (user) throw redirect(303, "/profile");
+        else throw redirect(303, "/login");
+    }
+
+    if (isProtected && user == null) {
+        console.log("Accessing a protected route with no credentials: " + url);
+        throw redirect(303, "/login");
+    }
+
+    return { user };
 }

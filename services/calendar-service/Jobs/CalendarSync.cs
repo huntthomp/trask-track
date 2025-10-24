@@ -1,8 +1,13 @@
-using TaskTrack.CalendarService.Utils;
-
 namespace TaskTrack.CalendarService.Jobs;
 
-public class CalendarSyncHandler
+using TaskTrack.CalendarService.Utils;
+
+public interface ICalendarSyncHandler
+{
+    Task UpdateCalendarAsync(Guid calendarId);
+}
+
+public class CalendarSyncHandler : ICalendarSyncHandler
 {
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly UserCalendarCache _calendarCahe;
@@ -22,10 +27,12 @@ public class CalendarSyncHandler
         await GetCalendar(calendar.CalendarIcsUrl);
 
     }
-    public async Task GetCalendar(string url)
+    private async Task GetCalendar(string url)
     {
         var httpClient = _httpClientFactory.CreateClient("CalendarRequest");
         var response = await httpClient.GetAsync(url);
-        var calendar = response.Content.ReadAsStringAsync();
+        var calendar = await response.Content.ReadAsStringAsync();
+
+        Console.WriteLine(calendar);
     }
 }

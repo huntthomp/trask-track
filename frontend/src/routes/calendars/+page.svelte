@@ -1,10 +1,11 @@
 <script>
-    import { PUBLIC_BACKEND_HOST } from "$env/static/public";
     import { onMount } from "svelte";
     import { Plus } from "@lucide/svelte";
     import Spinner from "$lib/components/Spinner.svelte";
     import CalendarItem from "$lib/components/calendar/CalendarItem.svelte";
     import NewCalendarModal from "$lib/components/calendar/NewCalendarModal.svelte";
+
+    const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL;
 
     let calendarsJson = "";
     let calendars = [];
@@ -15,14 +16,11 @@
 
     async function getCalendars() {
         try {
-            const response = await fetch(
-                `${PUBLIC_BACKEND_HOST}/calendar/list`,
-                {
-                    method: "GET",
-                    credentials: "include",
-                    headers: { "Content-Type": "application/json" },
-                },
-            );
+            const response = await fetch(`${backendApiUrl}/calendar/list`, {
+                method: "GET",
+                credentials: "include",
+                headers: { "Content-Type": "application/json" },
+            });
 
             if (!response.ok) throw new Error(await response.text());
 
@@ -53,15 +51,12 @@
                 },
             };
 
-            const response = await fetch(
-                `${PUBLIC_BACKEND_HOST}/calendar/new`,
-                {
-                    method: "POST",
-                    credentials: "include",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(body),
-                },
-            );
+            const response = await fetch(`${backendApiUrl}/calendar/new`, {
+                method: "POST",
+                credentials: "include",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(body),
+            });
 
             if (!response.ok) throw new Error(await response.text());
         } catch (err) {
@@ -105,15 +100,12 @@
                 },
             };
 
-            const response = await fetch(
-                `${PUBLIC_BACKEND_HOST}/calendar/update`,
-                {
-                    method: "PUT",
-                    credentials: "include",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(body),
-                },
-            );
+            const response = await fetch(`${backendApiUrl}/calendar/update`, {
+                method: "PUT",
+                credentials: "include",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(body),
+            });
 
             if (!response.ok) throw new Error(await response.text());
         } catch (err) {
@@ -127,14 +119,11 @@
         const { id } = e.detail;
 
         try {
-            const response = await fetch(
-                `${PUBLIC_BACKEND_HOST}/calendar/${id}`,
-                {
-                    method: "DELETE",
-                    credentials: "include",
-                    headers: { "Content-Type": "application/json" },
-                },
-            );
+            const response = await fetch(`${backendApiUrl}/calendar/${id}`, {
+                method: "DELETE",
+                credentials: "include",
+                headers: { "Content-Type": "application/json" },
+            });
 
             if (!response.ok) throw new Error(await response.text());
         } catch (err) {

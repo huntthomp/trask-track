@@ -1,7 +1,7 @@
 <script>
     import { LogOut } from "@lucide/svelte";
-    import { PUBLIC_BACKEND_HOST } from "$env/static/public";
     import { onMount } from "svelte";
+    const backendApiUrl = import.meta.env.VITE_BACKEND_API_URL;
 
     let returnUrl = "";
 
@@ -11,7 +11,7 @@
 </script>
 
 <a
-    href={`${PUBLIC_BACKEND_HOST}/account/logout?returnUrl=${encodeURIComponent(returnUrl)}`}
+    href={`${backendApiUrl}/account/logout?returnUrl=${encodeURIComponent(returnUrl)}`}
     class="inline-flex items-center justify-center"
 >
     <LogOut

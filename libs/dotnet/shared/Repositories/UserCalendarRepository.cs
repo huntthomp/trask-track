@@ -1,13 +1,11 @@
 namespace TaskTrack.Shared.Repositories;
 
 using System.Security.Claims;
-using System.Text.Json;
 using System.Text.RegularExpressions;
 using Dapper;
 using Npgsql;
 using TaskTrack.Shared.Models;
 using Newtonsoft.Json;
-using System.Reflection.Metadata.Ecma335;
 
 public interface IUserCalendarRepository
 {
@@ -58,7 +56,7 @@ public class UserCalendarRepository : IUserCalendarRepository
         var publicId = await connection.ExecuteScalarAsync<Guid>(sql, new
         {
             CalendarName = userCalendar.CalendarName,
-            CalendarIcsUrl = userCalendar.CalendarIcsUrl.ToLower(),
+            CalendarIcsUrl = userCalendar.CalendarIcsUrl,
             Metadata = System.Text.Json.JsonSerializer.Serialize(userCalendar.Metadata),
         });
 

@@ -1,0 +1,20 @@
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS dev
+WORKDIR /src
+
+COPY libs/dotnet/shared/TaskTrack.Shared.csproj ./libs/dotnet/shared/
+COPY services/calendar-service/TaskTrack.CalendarService.csproj ./services/calendar-service/
+
+RUN dotnet restore ./services/calendar-service/TaskTrack.CalendarService.csproj
+
+COPY libs/dotnet/shared/ ./libs/dotnet/shared/
+COPY services/calendar-service/ ./services/calendar-service/
+
+ARG CALENDAR_SERVICE_PORT
+
+ENV ASPNETCORE_URLS="http://+:${CALENDAR_SERVICE_PORT}" \
+    ASPNETCORE_ENVIRONMENT=Development \
+    DOTNET_USE_POLLING_FILE_WATCHER=true
+
+WORKDIR /src/services/calendar-service
+
+ENTRYPOINT ["dotnet", "watch", "run"]

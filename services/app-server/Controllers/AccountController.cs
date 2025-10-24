@@ -28,8 +28,9 @@ public class AccountController : Controller
         {
             await userRepository.InsertAsync(authenticateResult.Principal);
         }
-        catch
+        catch (Exception e)
         {
+            Console.WriteLine(e);
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return BadRequest("Unable to complete login. Error code 2");
         }

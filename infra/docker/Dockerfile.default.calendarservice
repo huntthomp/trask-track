@@ -1,0 +1,29 @@
+# Build Stage
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+WORKDIR /src
+
+COPY libs/dotnet/shared/TaskTrack.Shared.csproj ./libs/dotnet/shared/
+COPY services/calendar-service/TaskTrack.CalendarService.csproj ./services/calendar-service/
+
+RUN dotnet restore ./services/calendar-service/TaskTrack.CalendarService.csproj
+
+COPY libs/dotnet/shared/ ./libs/dotnet/shared/
+COPY services/calendar-service/ ./services/calendar-service/
+
+RUN dotnet publish ./services/calendar-service/TaskTrack.CalendarService.csproj \
+    -c Release \
+    -o /app
+
+# Runtime Stage
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
+WORKDIR /app
+
+COPY --from=build /app .
+
+ARG CALENDAR_SERVICE_PORT
+
+ENV ASPNETCORE_URLS="http://+:$CALENDAR_SERVICE_PORT" \
+    ASPNETCORE_ENVIRONMENT=Production \
+    DOTNET_RUNNING_IN_CONTAINER=true
+
+ENTRYPOINT ["dotnet", "TaskTrack.CalendarService.dll"]

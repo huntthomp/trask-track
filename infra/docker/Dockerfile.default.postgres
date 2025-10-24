@@ -1,0 +1,6 @@
+FROM postgres:16-alpine
+
+ARG POSTGRES_PORT
+ENV PGPORT=${POSTGRES_PORT}
+
+COPY infra/init/db /docker-entrypoint-initdb.d/

@@ -1,0 +1,20 @@
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS dev
+WORKDIR /src
+
+COPY libs/dotnet/shared/TaskTrack.Shared.csproj ./libs/dotnet/shared/
+COPY services/app-server/TaskTrack.AppServer.csproj ./services/app-server/
+
+RUN dotnet restore ./services/app-server/TaskTrack.AppServer.csproj
+
+COPY libs/dotnet/shared/ ./libs/dotnet/shared/
+COPY services/app-server/ ./services/app-server/
+
+ARG BACKEND_PORT
+
+ENV ASPNETCORE_URLS="http://+:${BACKEND_PORT}" \
+    ASPNETCORE_ENVIRONMENT=Development \
+    DOTNET_USE_POLLING_FILE_WATCHER=true
+
+WORKDIR /src/services/app-server
+
+ENTRYPOINT ["dotnet", "watch", "run"]

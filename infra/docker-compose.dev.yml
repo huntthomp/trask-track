@@ -1,0 +1,159 @@
+name: tasktrack-dev
+
+services:
+  postgres:
+    build:
+      context: ..
+      dockerfile: infra/docker/Dockerfile.default.postgres
+      args:
+        POSTGRES_PORT: ${POSTGRES_PORT}
+    container_name: tasktrack-dev-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_DEFAULT_USER: ${POSTGRES_DEFAULT_USER}
+      POSTGRES_DEFAULT_PASSWORD: ${POSTGRES_DEFAULT_PASSWORD}
+    ports:
+      - "${POSTGRES_PORT}:${POSTGRES_PORT}"
+    volumes:
+      - tasktrack_dev_postgres_data:/var/lib/postgresql/data
+      - ./init/db:/docker-entrypoint-initdb.d
+    networks:
+      - tasktrack-network-dev
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ======================
+  # 2. Object Storage (MinIO)
+  # ======================
+  filestore:
+    build:
+      context: ..
+      dockerfile: infra/docker/Dockerfile.default.minio
+    container_name: tasktrack-dev-filestore
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      MINIO_API_PORT: "${MINIO_API_PORT}"
+      MINIO_CONSOLE_PORT: "${MINIO_CONSOLE_PORT}"
+    ports:
+      - "${MINIO_API_PORT}:${MINIO_API_PORT}" # API
+      - "${MINIO_CONSOLE_PORT}:${MINIO_CONSOLE_PORT}" # Console
+    volumes:
+      - tasktrack_dev_filestore_data:/data
+      - ./init/minio:/docker-entrypoint-init.d
+    networks:
+      - tasktrack-network-dev
+
+  # ======================
+  # 3. Backend Services
+  # ======================
+
+  app-server:
+    build:
+      context: ..
+      dockerfile: infra/docker/Dockerfile.dev.appserver
+      args:
+        BACKEND_PORT: ${BACKEND_PORT}
+
+    container_name: tasktrack-dev-app-server
+    restart: unless-stopped
+    environment:
+      AUTH0_DOMAIN: ${AUTH0_DOMAIN}
+      AUTH0_CLIENT_ID: ${AUTH0_CLIENT_ID}
+      AUTH0_CLIENT_SECRET: ${AUTH0_CLIENT_SECRET}
+      POSTGRES_DEFAULT_USER: ${POSTGRES_DEFAULT_USER}
+      POSTGRES_DEFAULT_PASSWORD: ${POSTGRES_DEFAULT_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      CORS_ALLOW: ${CORS_ALLOW}
+      BACKEND_PORT: ${BACKEND_PORT}
+    ports:
+      - "${BACKEND_PORT}:${BACKEND_PORT}"
+    volumes:
+      - ../services/app-server:/src/services/app-server
+      - ../libs/dotnet/shared:/src/libs/dotnet/shared=
+      - /src/services/app-server/bin
+      - /src/services/app-server/obj
+    networks:
+      - tasktrack-network-dev
+    depends_on:
+      postgres:
+        condition: service_healthy
+      filestore:
+        condition: service_started
+
+  calendar-service:
+    build:
+      context: ..
+      dockerfile: infra/docker/Dockerfile.dev.calendarservice
+      args:
+        CALENDAR_SERVICE_PORT: ${CALENDAR_SERVICE_PORT}
+    container_name: tasktrack-dev-calendar-service
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      CALENDAR_SERVICE_PORT: ${CALENDAR_SERVICE_PORT}
+    ports:
+      - "${CALENDAR_SERVICE_PORT}:${CALENDAR_SERVICE_PORT}"
+    volumes:
+      - ../services/calendar-service:/src/services/calendar-service
+      - ../libs/dotnet/shared:/src/libs/dotnet/shared
+      - /src/services/calendar-service/bin
+      - /src/services/calendar-service/obj
+    networks:
+      - tasktrack-network-dev
+    depends_on:
+      postgres:
+        condition: service_healthy
+      filestore:
+        condition: service_started
+
+  # ======================
+  # 4. Frontend (Vite/SvelteKit)
+  # ======================
+  frontend:
+    build:
+      context: ..
+      dockerfile: infra/docker/Dockerfile.dev.frontend
+    container_name: tasktrack-dev-frontend
+    restart: unless-stopped
+    environment:
+      BUILD_PORT: ${FRONTEND_PORT}
+      BACKEND_HOST: ${BACKEND_HOST}
+      VITE_BACKEND_API_URL: ${PUBLIC_BACKEND_API_URL}
+    ports:
+      - "${FRONTEND_PORT}:${FRONTEND_PORT}"
+    volumes:
+      - ../frontend:/app
+      - /app/node_modules
+    networks:
+      - tasktrack-network-dev
+    depends_on:
+      app-server:
+        condition: service_started
+      calendar-service:
+        condition: service_started
+
+# ======================
+# VOLUMES & NETWORKS
+# ======================
+
+volumes:
+  tasktrack_dev_postgres_data:
+  tasktrack_dev_filestore_data:
+
+networks:
+  tasktrack-network-dev:
+    driver: bridge
