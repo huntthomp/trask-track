@@ -6,6 +6,7 @@ using Dapper;
 using Npgsql;
 using TaskTrack.Shared.Models;
 using Newtonsoft.Json;
+using TaskTrack.Shared.Exceptions;
 
 public interface IUserCalendarRepository
 {
@@ -21,6 +22,7 @@ public class UserCalendarRepository : IUserCalendarRepository
     private readonly NpgsqlDataSource _dataSource;
     const string ColorPattern = @"^#?([0-9a-fA-F]{6}|[0-9a-fA-F]{3})$";
     const string IcsUrlPattern = "^https?:\\/\\/[^\\/\\s?#]+(?:\\/[^\\s?#]*)*\\.ics(?:\\?[^\\s#]*)?(?:#.*)?$";
+    const string CalendarNamePattern = "^(?!.*[_\\-\\s]{2,})[A-Za-z0-9][A-Za-z0-9 _\\-]{1,48}[A-Za-z0-9]$";
 
     public UserCalendarRepository(NpgsqlDataSource dataSource)
     {
@@ -31,11 +33,15 @@ public class UserCalendarRepository : IUserCalendarRepository
     {
         if (string.IsNullOrWhiteSpace(userCalendar.Metadata.Color) || !Regex.IsMatch(userCalendar.Metadata.Color, ColorPattern, RegexOptions.IgnoreCase))
         {
-            throw new Exception("Invalid color provided");
+            throw new InvalidInputException("Invalid color provided");
         }
         if (string.IsNullOrWhiteSpace(userCalendar.CalendarIcsUrl) || !Regex.IsMatch(userCalendar.CalendarIcsUrl, IcsUrlPattern, RegexOptions.IgnoreCase))
         {
-            throw new Exception("Invalid calendar url provided");
+            throw new InvalidInputException("Invalid calendar url provided");
+        }
+        if (string.IsNullOrWhiteSpace(userCalendar.CalendarName) || !Regex.IsMatch(userCalendar.CalendarName, CalendarNamePattern, RegexOptions.IgnoreCase))
+        {
+            throw new InvalidInputException("Invalid calendar name provided");
         }
 
         await using var connection = await _dataSource.OpenConnectionAsync();
@@ -130,11 +136,15 @@ public class UserCalendarRepository : IUserCalendarRepository
     {
         if (string.IsNullOrWhiteSpace(userCalendar.Metadata.Color) || !Regex.IsMatch(userCalendar.Metadata.Color, ColorPattern))
         {
-            throw new Exception("Invalid color provided");
+            throw new InvalidInputException("Invalid color provided");
         }
         if (string.IsNullOrWhiteSpace(userCalendar.CalendarIcsUrl) || !Regex.IsMatch(userCalendar.CalendarIcsUrl.ToLower(), IcsUrlPattern))
         {
-            throw new Exception("Invalid calendar url provided");
+            throw new InvalidInputException("Invalid calendar url provided");
+        }
+        if (string.IsNullOrWhiteSpace(userCalendar.CalendarName) || !Regex.IsMatch(userCalendar.CalendarName, CalendarNamePattern, RegexOptions.IgnoreCase))
+        {
+            throw new InvalidInputException("Invalid calendar name provided");
         }
 
         await using var connection = await _dataSource.OpenConnectionAsync();

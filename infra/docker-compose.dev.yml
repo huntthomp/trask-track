@@ -61,7 +61,6 @@ services:
       dockerfile: infra/docker/Dockerfile.dev.appserver
       args:
         BACKEND_PORT: ${BACKEND_PORT}
-
     container_name: tasktrack-dev-app-server
     restart: unless-stopped
     environment:
@@ -77,8 +76,8 @@ services:
     ports:
       - "${BACKEND_PORT}:${BACKEND_PORT}"
     volumes:
-      - ../services/app-server:/src/services/app-server
-      - ../libs/dotnet/shared:/src/libs/dotnet/shared=
+      - ../services/app-server:/src/services/app-server:delegated
+      - ../libs/dotnet/shared:/src/libs/dotnet/shared:delegated
       - /src/services/app-server/bin
       - /src/services/app-server/obj
     networks:

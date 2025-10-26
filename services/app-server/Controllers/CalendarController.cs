@@ -2,6 +2,8 @@ namespace TaskTrack.AppServer.Controllers;
 
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
+using Npgsql;
+using TaskTrack.Shared.Exceptions;
 using TaskTrack.Shared.Models;
 using TaskTrack.Shared.Repositories;
 
@@ -16,9 +18,17 @@ public class CalendarController : Controller
         {
             newCalendarId = await usercalendarRepository.InsertAsync(User, request);
         }
-        catch (Exception e)
+        catch (InvalidInputException e)
         {
             return BadRequest(e.Message);
+        }
+        catch (PostgresException ex) when (ex.SqlState == "23505")
+        {
+            return BadRequest("A calendar with this url already exists.");
+        }
+        catch
+        {
+            return BadRequest("Something went wrong, please try again");
         }
         var createdCalendar = new
         {
@@ -37,9 +47,17 @@ public class CalendarController : Controller
         {
             await usercalendarRepository.UpdateAsync(User, request);
         }
-        catch (Exception e)
+        catch (InvalidInputException e)
         {
             return BadRequest(e.Message);
+        }
+        catch (PostgresException ex) when (ex.SqlState == "23505")
+        {
+            return BadRequest("A calendar with this url already exists.");
+        }
+        catch
+        {
+            return BadRequest("Something went wrong, please try again");
         }
 
         return Ok();

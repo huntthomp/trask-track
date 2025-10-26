@@ -35,6 +35,15 @@ public class AccountController : Controller
             return BadRequest("Unable to complete login. Error code 2");
         }
 
+        await HttpContext.SignInAsync(
+            CookieAuthenticationDefaults.AuthenticationScheme,
+            authenticateResult.Principal,
+            new AuthenticationProperties
+            {
+                IsPersistent = true,
+                ExpiresUtc = DateTimeOffset.UtcNow.AddDays(7)
+            });
+
         return Redirect(returnUrl);
     }
 
