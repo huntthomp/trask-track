@@ -1,4 +1,5 @@
 using Hangfire;
+using Hangfire.Dashboard.BasicAuthorization;
 using Hangfire.PostgreSql;
 using Microsoft.AspNetCore.Builder;
 using Minio;
@@ -61,19 +62,36 @@ builder.Services.AddHttpClient("CalendarRequest", client =>
 builder.Services.AddSingleton<ICalendarSyncHandler, CalendarSyncHandler>();
 builder.Services.AddSingleton<IJobScheduler, HangfireJobScheduler>();
 builder.Services.AddSingleton<IUserCalendarRepository, UserCalendarRepository>();
+builder.Services.AddSingleton<ITaskRepository, TaskRepository>();
 builder.Services.AddSingleton<UserCalendarCache>();
 
 // Application Setup
 var app = builder.Build();
 
 // Hanfgire steup
-app.UseHangfireDashboard("/jobs");
+app.UseHangfireDashboard("/jobs", new DashboardOptions
+{
+    Authorization = new[] { new BasicAuthAuthorizationFilter(new BasicAuthAuthorizationFilterOptions
+    {
+        RequireSsl = false,
+        SslRedirect = false,
+        LoginCaseSensitive = true,
+        Users = new[]
+        {
+            new BasicAuthAuthorizationUser
+            {
+                Login = "hangfireuser",
+                PasswordClear = "hangfirepass"
+            }
+        }
+    })}
+});
 RecurringJob.AddOrUpdate<CalendarJobDispatcher>(
     "calendar-sync-scheduler",
     job => job.ScheduleAsync(),
     Cron.Never
 );
 
-app.MapGet("/", () => "Application Healthy");
+app.MapGet("/", () => "Calendar Service Healthy");
 
 await app.RunAsync();

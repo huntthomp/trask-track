@@ -25,12 +25,12 @@ public class CalendarJobDispatcher
 
     public async Task ScheduleAsync()
     {
-        var calendars = await _userCalendarRepository.AllAsync(new ClaimsPrincipal());
+        var calendars = await _userCalendarRepository.AllAsync();
         _userCalendarCache.AddRange(calendars);
 
         foreach (var calendar in calendars)
         {
-            _jobScheduler.Enqueue<ICalendarSyncHandler>(h => h.UpdateCalendarAsync(calendar.CalendarId));
+            _jobScheduler.Enqueue<ICalendarSyncHandler>(h => h.UpdateCalendarAsync(calendar.PublicId));
         }
     }
 }

@@ -3,7 +3,8 @@ namespace TaskTrack.Shared.Models;
 
 public class UserCalendarRaw
 {
-    public required Guid CalendarId { get; set; }
+    public required long CalendarId { get; set; }
+    public required Guid PublicId { get; set; }
     public required string CalendarName { get; set; }
     public required string CalendarIcsUrl { get; set; }
     public DateTime? SyncedAt { get; set; } = null;
@@ -11,7 +12,8 @@ public class UserCalendarRaw
 }
 public class UserCalendar
 {
-    public required Guid CalendarId { get; set; }
+    public required long CalendarId { get; set; }
+    public required Guid PublicId { get; set; }
     public required string CalendarName { get; set; }
     public required string CalendarIcsUrl { get; set; }
     public DateTime? SyncedAt { get; set; } = null;

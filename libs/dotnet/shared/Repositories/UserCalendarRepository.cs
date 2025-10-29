@@ -12,7 +12,7 @@ public interface IUserCalendarRepository
 {
     Task<Guid> InsertAsync(ClaimsPrincipal user, NewUserCalendar userCalendar);
     Task<UserCalendar?> GetByPublicIdAsync(ClaimsPrincipal user, Guid id);
-    Task<IEnumerable<UserCalendar>> AllAsync(ClaimsPrincipal user);
+    Task<IEnumerable<UserCalendar>> AllAsync(ClaimsPrincipal? user = null);
     Task UpdateAsync(ClaimsPrincipal user, UserCalendar userCalendar);
     Task DeleteAsync(ClaimsPrincipal user, Guid id);
 }
@@ -77,7 +77,8 @@ public class UserCalendarRepository : IUserCalendarRepository
 
         const string sql = @"
         SELECT
-            public_id AS CalendarId,
+            id AS CalendarId,
+            public_id AS PublicId,
             calendar_name AS CalendarName,
             calendar_ics_url AS CalendarIcsUrl,
             synced_at AS SyncedAt,
@@ -96,6 +97,7 @@ public class UserCalendarRepository : IUserCalendarRepository
         return new UserCalendar
         {
             CalendarId = rawCalendar.CalendarId,
+            PublicId = rawCalendar.PublicId,
             CalendarName = rawCalendar.CalendarName,
             CalendarIcsUrl = rawCalendar.CalendarIcsUrl,
             SyncedAt = rawCalendar.SyncedAt,
@@ -103,15 +105,19 @@ public class UserCalendarRepository : IUserCalendarRepository
         };
     }
 
-    public async Task<IEnumerable<UserCalendar>> AllAsync(ClaimsPrincipal user)
+    public async Task<IEnumerable<UserCalendar>> AllAsync(ClaimsPrincipal? user)
     {
         await using var connection = await _dataSource.OpenConnectionAsync();
 
-        await Properties.SetTenant(connection, user);
+        if (user != null)
+        {
+            await Properties.SetTenant(connection, user);
+        }
 
         const string sql = @"
         SELECT
-            public_id AS CalendarId,
+            id AS CalendarId,
+            public_id AS PublicId,
             calendar_name AS CalendarName,
             calendar_ics_url AS CalendarIcsUrl,
             synced_at AS SyncedAt,
@@ -123,6 +129,7 @@ public class UserCalendarRepository : IUserCalendarRepository
         var calendars = raw.Select(r => new UserCalendar
         {
             CalendarId = r.CalendarId,
+            PublicId = r.PublicId,
             CalendarName = r.CalendarName,
             CalendarIcsUrl = r.CalendarIcsUrl,
             SyncedAt = r.SyncedAt,

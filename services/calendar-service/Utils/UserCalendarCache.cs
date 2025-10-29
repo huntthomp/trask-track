@@ -9,12 +9,12 @@ public class UserCalendarCache
 
     public void Add(UserCalendar job)
     {
-        _cache[job.CalendarId] = job;
+        _cache[job.PublicId] = job;
     }
 
     public void AddRange(IEnumerable<UserCalendar> jobs)
     {
-        foreach (var job in jobs) _cache[job.CalendarId] = job;
+        foreach (var job in jobs) _cache[job.PublicId] = job;
     }
 
     public bool TryGet(Guid id, out UserCalendar? job)
