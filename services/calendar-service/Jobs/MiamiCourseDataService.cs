@@ -2,6 +2,8 @@ using System.Buffers.Text;
 using System.Diagnostics;
 using System.Net.Http.Json;
 using TaskTrack.CalendarService.Models;
+using TaskTrack.Shared.Models;
+using TaskTrack.Shared.Repositories;
 
 namespace TaskTrack.CalendarService.Jobs;
 
@@ -13,43 +15,72 @@ public interface IMiamiCourseDataService
 public class MiamiCourseDataService : IMiamiCourseDataService
 {
     private readonly IHttpClientFactory _httpClientFactory;
-    private const string BaseUrl = "https://ws.apps.miamioh.edu/api/courseSection/v3/courseSection";
-    //?limit=100&termCode=202630&compose=enrollmentCount,schedules,instructors
-    private Dictionary<string, string> DefaultQueryParams = new Dictionary<string, string>
-    {
-        {"compose", "enrollmentCount,schedules,instructors"},
-        {"limit", "100"},
-    };
+    private readonly IInternalTaskRepository _internalTaskRepository;
+    private const string BaseUrl = "https://ws.apps.miamioh.edu/api/courseSection/v3/courseSection?compose=enrollmentCount,schedules,instructors&limit=100";
+
     public MiamiCourseDataService(
-        IHttpClientFactory httpClientFactory)
+        IHttpClientFactory httpClientFactory,
+        IInternalTaskRepository internalTaskRepository)
     {
         _httpClientFactory = httpClientFactory;
+        _internalTaskRepository = internalTaskRepository;
     }
 
     public async Task UpdateCoursesAsync(string termCode)
     {
-        /* var httpClient = _httpClientFactory.CreateClient();
+        var httpClient = _httpClientFactory.CreateClient();
+        var tag = $"course_update|{termCode}";
 
-        var checkpoint = await GetCheckpointAsync(termCode);
+        var checkpoint = await _internalTaskRepository.GetCheckpointAsync(tag);
 
-        string? nextUrl = checkpoint?.NextUrl ?? $"https://api.university.edu/courses?term={termCode}&page=1";
-        int currentPage = checkpoint?.CurrentPage ?? 1;
+        string? nextUrl = checkpoint?.Next ?? BaseUrl + $"$term={termCode}";
 
         while (!string.IsNullOrEmpty(nextUrl))
         {
             MiamiCourseResponseDto response = await GetCourses(nextUrl, httpClient);
 
-            nextUrl = response.NextUrl;
+            await InsertCourses(response.Sections);
 
-            await SaveCheckpointAsync(termCode, nextUrl, currentPage);
+            if (response.NextUrl != null)
+            {
+                await _internalTaskRepository.SaveCheckpointAsync(new TaskCheckpoint() { Tag = tag, Current = nextUrl, Next = response.NextUrl });
+            }
+
+            nextUrl = response.NextUrl;
         }
 
-        await DeleteCheckpointAsync(termCode); */
+        await _internalTaskRepository.DeleteCheckpointAsync(tag);
     }
     private async Task<MiamiCourseResponseDto> GetCourses(string url, HttpClient client)
     {
         var response = await client.GetFromJsonAsync<MiamiCourseResponseDto>(url);
         if (response == null || response.Status != 200) throw new Exception($"Failed getting course data {url}");
         return response;
+    }
+    private async Task InsertCourses(List<MiamiSectionDto> sections)
+    {
+        var instructors = sections
+            .SelectMany(x => x.Instructors)
+            .DistinctBy(x => x.Person.UniqueId)
+            .ToList();
+
+        var buildings = sections
+            .SelectMany(x => x.Schedules)
+            .Select(sch => new MiamiBuildingDto { BuildingCode = sch.BuildingCode, BuildingName = sch.BuildingName })
+            .DistinctBy(x => x.BuildingCode)
+            .ToList();
+
+        var terms = sections
+            .Select(x => x.PartOfTerm)
+            .DistinctBy(x => x.Code)
+            .ToList();
+
+        var courses = sections
+            .Select(x => x.Course)
+            .GroupBy(x => (x.SubjectCode, x.Number))
+            .Select(x => x.First())
+            .ToList();
+
+
     }
 }

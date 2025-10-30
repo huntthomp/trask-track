@@ -1,4 +1,4 @@
-namespace TaskTrack.Shared.Repositories;
+namespace TaskTrack.CalendarService.Repositories;
 
 using Npgsql;
 using TaskTrack.CalendarService.Models;

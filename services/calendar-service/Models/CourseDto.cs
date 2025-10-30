@@ -290,3 +290,9 @@ public class MiamiScheduleDto
     [JsonPropertyName("scheduleTypeDescription")]
     public required string ScheduleTypeDescription { get; set; }
 }
+
+public class MiamiBuildingDto
+{
+    public required string BuildingCode { get; set; }
+    public required string BuildingName { get; set; }
+}
