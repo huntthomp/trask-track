@@ -39,12 +39,17 @@ public class InternalTaskRepository : IInternalTaskRepository
     }
     public async Task SaveCheckpointAsync(TaskCheckpoint checkpoint)
     {
+        Console.WriteLine("saving");
         await using var connection = await _dataSource.OpenConnectionAsync();
 
         const string sql = @"
-        UPDATE internal.task_checkpoints
-        SET next = @Next, current = @Current, last_updated = now()
-        WHERE tag = @Tag
+        INSERT INTO internal.task_checkpoints (tag, next, current, last_updated)
+        VALUES (@Tag, @Next, @Current, now())
+        ON CONFLICT (tag) DO UPDATE
+        SET 
+            next = EXCLUDED.next,
+            current = EXCLUDED.current,
+            last_updated = now();
         ";
 
         await connection.ExecuteAsync(sql, new { Tag = checkpoint.Tag, Next = checkpoint.Next, Current = checkpoint.Current });

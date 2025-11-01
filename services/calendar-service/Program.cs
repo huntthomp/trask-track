@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Builder;
 using Minio;
 using Npgsql;
 using TaskTrack.CalendarService.Jobs;
+using TaskTrack.CalendarService.Repositories;
 using TaskTrack.CalendarService.Utils;
 using TaskTrack.Shared.Repositories;
 
@@ -63,6 +64,8 @@ builder.Services.AddSingleton<ICalendarSyncHandler, CalendarSyncHandler>();
 builder.Services.AddSingleton<IJobScheduler, HangfireJobScheduler>();
 builder.Services.AddSingleton<IUserCalendarRepository, UserCalendarRepository>();
 builder.Services.AddSingleton<ITaskRepository, TaskRepository>();
+builder.Services.AddSingleton<IInternalTaskRepository, InternalTaskRepository>();
+builder.Services.AddSingleton<IMiamiCourseInfoRepository, MiamiCourseInfoRepository>();
 builder.Services.AddSingleton<UserCalendarCache>();
 
 // Application Setup
@@ -89,6 +92,27 @@ app.UseHangfireDashboard("/jobs", new DashboardOptions
 RecurringJob.AddOrUpdate<CalendarJobDispatcher>(
     "calendar-sync-scheduler",
     job => job.ScheduleAsync(),
+    Cron.Never
+);
+
+RecurringJob.AddOrUpdate<MiamiCourseDataService>(
+    "miami-course-sync-fall",
+    job => job.UpdateCoursesAsync("202610"),
+    Cron.Never
+);
+RecurringJob.AddOrUpdate<MiamiCourseDataService>(
+    "miami-course-sync-winter",
+    job => job.UpdateCoursesAsync("202615"),
+    Cron.Never
+);
+RecurringJob.AddOrUpdate<MiamiCourseDataService>(
+    "miami-course-sync-spring",
+    job => job.UpdateCoursesAsync("202620"),
+    Cron.Never
+);
+RecurringJob.AddOrUpdate<MiamiCourseDataService>(
+    "miami-course-sync-summer",
+    job => job.UpdateCoursesAsync("202630"),
     Cron.Never
 );
 

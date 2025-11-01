@@ -1,6 +1,7 @@
 namespace TaskTrack.CalendarService.Jobs;
 
 using TaskTrack.CalendarService.Models;
+using TaskTrack.CalendarService.Repositories;
 using TaskTrack.CalendarService.Utils;
 using TaskTrack.Shared.Repositories;
 

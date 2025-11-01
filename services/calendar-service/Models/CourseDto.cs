@@ -75,10 +75,10 @@ public class MiamiSectionDto
     public string? CreditHoursDescription { get; set; }
 
     [JsonPropertyName("creditHoursLow")]
-    public int CreditHoursLow { get; set; }
+    public decimal? CreditHoursLow { get; set; }
 
     [JsonPropertyName("creditHoursHigh")]
-    public int CreditHoursHigh { get; set; }
+    public decimal? CreditHoursHigh { get; set; }
 
     [JsonPropertyName("isMidtermGradeSubmissionAvailable")]
     public bool IsMidtermGradeSubmissionAvailable { get; set; }
@@ -107,8 +107,8 @@ public class MiamiSectionDto
     [JsonPropertyName("legacyStandardizedDepartmentName")]
     public string? LegacyStandardizedDepartmentName { get; set; }
 
-    [JsonPropertyName("creditHoursAvailable")]
-    public List<int> CreditHoursAvailable { get; set; } = [];
+    //[JsonPropertyName("creditHoursAvailable")]
+    //public List<int> CreditHoursAvailable { get; set; } = [];
 
     [JsonPropertyName("isDisplayed")]
     public bool IsDisplayed { get; set; }
@@ -162,22 +162,22 @@ public class MiamiCourseDto
     public string? LabHoursDescription { get; set; }
 
     [JsonPropertyName("creditHoursHigh")]
-    public int? CreditHoursHigh { get; set; }
+    public decimal? CreditHoursHigh { get; set; }
 
     [JsonPropertyName("creditHoursLow")]
-    public int? CreditHoursLow { get; set; }
+    public decimal? CreditHoursLow { get; set; }
 
     [JsonPropertyName("lectureHoursHigh")]
-    public int? LectureHoursHigh { get; set; }
+    public decimal? LectureHoursHigh { get; set; }
 
     [JsonPropertyName("lectureHoursLow")]
-    public int? LectureHoursLow { get; set; }
+    public decimal? LectureHoursLow { get; set; }
 
     [JsonPropertyName("labHoursHigh")]
-    public int? LabHoursHigh { get; set; }
+    public decimal? LabHoursHigh { get; set; }
 
     [JsonPropertyName("labHoursLow")]
-    public int? LabHoursLow { get; set; }
+    public decimal? LabHoursLow { get; set; }
 
     [JsonPropertyName("description")]
     public string? Description { get; set; }
@@ -225,7 +225,7 @@ public class MiamiInstructorDto
 public class MiamiPersonDto
 {
     [JsonPropertyName("uniqueId")]
-    public string? UniqueId { get; set; }
+    public required string UniqueId { get; set; }
 
     [JsonPropertyName("lastName")]
     public string? LastName { get; set; }
@@ -276,10 +276,10 @@ public class MiamiScheduleDto
     public string? RoomNumber { get; set; }
 
     [JsonPropertyName("buildingCode")]
-    public required string BuildingCode { get; set; }
+    public string? BuildingCode { get; set; }
 
     [JsonPropertyName("buildingName")]
-    public required string BuildingName { get; set; }
+    public string? BuildingName { get; set; }
 
     [JsonPropertyName("days")]
     public string? Days { get; set; }
@@ -293,6 +293,33 @@ public class MiamiScheduleDto
 
 public class MiamiBuildingDto
 {
-    public required string BuildingCode { get; set; }
-    public required string BuildingName { get; set; }
+    public string? BuildingCode { get; set; }
+    public string? BuildingName { get; set; }
+}
+
+public class MiamiScheduleInsertDto
+{
+    public required string TermCode { get; set; }
+    public required DateTime TermStartDate { get; set; }
+    public required DateTime TermEndDate { get; set; }
+    public required string Crn { get; set; }
+    public string? BuildingCode { get; set; }
+    public string? BuildingName { get; set; }
+    public required DateTime StartDate { get; set; }
+    public required DateTime EndDate { get; set; }
+    public TimeOnly? StartTime { get; set; }
+    public TimeOnly? EndTime { get; set; }
+    public string? RoomNumber { get; set; }
+    public string? Days { get; set; }
+    public required string ScheduleTypeDescription { get; set; }
+}
+
+public class MiamiInstructorSectionDto
+{
+    public required bool IsPrimary { get; set; }
+    public required string InstructorUniqueId { get; set; }
+    public required string TermCode { get; set; }
+    public required DateTime TermStartDate { get; set; }
+    public required DateTime TermEndDate { get; set; }
+    public required string Crn { get; set; }
 }

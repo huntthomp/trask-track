@@ -62,8 +62,8 @@ CREATE TABLE miami.terms(
     id SERIAL PRIMARY KEY,
     code TEXT NOT NULL,
     name TEXT NOT NULL,
-    start_date TIMESTAMPTZ NOT NULL,
-    end_date TIMESTAMPTZ NOT NULL,
+    start_date TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    end_date TIMESTAMP WITHOUT TIME ZONE NOT NULL,
     UNIQUE (code, start_date, end_date)
 );
 
@@ -75,8 +75,8 @@ CREATE TABLE miami.courses(
     subject_code TEXT NOT NULL,
     subject_description TEXT NOT NULL,
     course_number TEXT NOT NULL,
-    credit_hours_low INT NOT NULL,
-    credit_hours_high INT NOT NULL,
+    credit_hours_low NUMERIC(3,1),
+    credit_hours_high NUMERIC(3,1),
     description TEXT,
     UNIQUE (subject_code, course_number)
 );
@@ -99,9 +99,9 @@ CREATE TABLE miami.sections(
 CREATE TABLE miami.schedules(
     id SERIAL PRIMARY KEY,
     section_id INT NOT NULL REFERENCES miami.sections(id),
-    building_id INT NOT NULL REFERENCES miami.buildings(id),
-    start_date TIMESTAMPTZ NOT NULL,
-    end_date TIMESTAMPTZ NOT NULL,
+    building_id INT REFERENCES miami.buildings(id),
+    start_date TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    end_date TIMESTAMP WITHOUT TIME ZONE NOT NULL,
     start_time TIME,
     end_time TIME,
     room_number TEXT,
@@ -119,8 +119,8 @@ CREATE TABLE miami.instructor_section (
     UNIQUE (instructor_id, section_id)
 );
 
--- Schema for admin and system functions
 
+-- Schema for admin and system functions
 CREATE SCHEMA internal;
 
 -- Checkpoints for long running tasks
@@ -128,6 +128,6 @@ CREATE SCHEMA internal;
 CREATE TABLE internal.task_checkpoints(
     tag TEXT PRIMARY KEY,
     next TEXT NULL,
-    current INT NULL,
+    current TEXT NULL,
     last_updated TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
