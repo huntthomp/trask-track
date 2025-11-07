@@ -20,7 +20,7 @@ public interface IUserCalendarRepository
 public class UserCalendarRepository : IUserCalendarRepository
 {
     private readonly NpgsqlDataSource _dataSource;
-    const string ColorPattern = @"^#?([0-9a-fA-F]{6}|[0-9a-fA-F]{3})$";
+    const string ColorPattern = "^#?([0-9a-fA-F]{6}|[0-9a-fA-F]{3})$";
     const string IcsUrlPattern = "^https?:\\/\\/[^\\/\\s?#]+(?:\\/[^\\s?#]*)*\\.ics(?:\\?[^\\s#]*)?(?:#.*)?$";
     const string CalendarNamePattern = "^(?!.*[_\\-\\s]{2,})[A-Za-z0-9][A-Za-z0-9 _\\-]{1,48}[A-Za-z0-9]$";
 
@@ -97,6 +97,7 @@ public class UserCalendarRepository : IUserCalendarRepository
         return new UserCalendar
         {
             CalendarId = rawCalendar.CalendarId,
+            UserId = rawCalendar.UserId,
             PublicId = rawCalendar.PublicId,
             CalendarName = rawCalendar.CalendarName,
             CalendarIcsUrl = rawCalendar.CalendarIcsUrl,
@@ -117,6 +118,7 @@ public class UserCalendarRepository : IUserCalendarRepository
         const string sql = @"
         SELECT
             id AS CalendarId,
+            user_id AS UserId,
             public_id AS PublicId,
             calendar_name AS CalendarName,
             calendar_ics_url AS CalendarIcsUrl,
@@ -129,6 +131,7 @@ public class UserCalendarRepository : IUserCalendarRepository
         var calendars = raw.Select(r => new UserCalendar
         {
             CalendarId = r.CalendarId,
+            UserId = r.UserId,
             PublicId = r.PublicId,
             CalendarName = r.CalendarName,
             CalendarIcsUrl = r.CalendarIcsUrl,

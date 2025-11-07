@@ -4,6 +4,7 @@ namespace TaskTrack.Shared.Models;
 public class UserCalendarRaw
 {
     public required long CalendarId { get; set; }
+    public required int UserId { get; set; }
     public required Guid PublicId { get; set; }
     public required string CalendarName { get; set; }
     public required string CalendarIcsUrl { get; set; }
@@ -13,6 +14,7 @@ public class UserCalendarRaw
 public class UserCalendar
 {
     public required long CalendarId { get; set; }
+    public required int UserId { get; set; }
     public required Guid PublicId { get; set; }
     public required string CalendarName { get; set; }
     public required string CalendarIcsUrl { get; set; }

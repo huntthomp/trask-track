@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Builder;
 using Minio;
 using Npgsql;
 using TaskTrack.CalendarService.Jobs;
-using TaskTrack.CalendarService.Repositories;
 using TaskTrack.CalendarService.Utils;
 using TaskTrack.Shared.Repositories;
 
@@ -13,10 +12,13 @@ string postgresDb = Environment.GetEnvironmentVariable("POSTGRES_DB") ?? "";
 string postgresPort = Environment.GetEnvironmentVariable("POSTGRES_PORT") ?? "";
 string postgresUser = Environment.GetEnvironmentVariable("POSTGRES_USER") ?? "";
 string postgresPassword = Environment.GetEnvironmentVariable("POSTGRES_PASSWORD") ?? "";
+string postgresDefaultUser = Environment.GetEnvironmentVariable("POSTGRES_DEFAULT_USER") ?? "";
+string postgresDefaultPassword = Environment.GetEnvironmentVariable("POSTGRES_DEFAULT_PASSWORD") ?? "";
 string minioRootUser = Environment.GetEnvironmentVariable("MINIO_ROOT_USER") ?? "";
 string minioRootPassword = Environment.GetEnvironmentVariable("MINIO_ROOT_PASSWORD") ?? "";
 
 string adminConnectionString = $"Host=postgres;Port={postgresPort};Username={postgresUser};Password={postgresPassword};Database={postgresDb};";
+string defaultConnectionString = $"Host=postgres;Port={postgresPort};Username={postgresDefaultUser};Password={postgresDefaultPassword};Database={postgresDb};";
 
 var builder = WebApplication.CreateBuilder(args);
 var env = builder.Environment;
@@ -24,6 +26,7 @@ var env = builder.Environment;
 if (env.IsDevelopment())
 {
     adminConnectionString += "Include Error Detail=true;";
+    defaultConnectionString += "Include Error Detail=true;";
 }
 
 // Hangfire Config 
@@ -49,11 +52,13 @@ builder.Services.AddSingleton<IMinioClient>(_ =>
 );
 
 // Dependecy Injection Config
-builder.Services.AddSingleton<NpgsqlDataSource>(_ =>
+builder.Services.AddNpgsqlDataSource(adminConnectionString, serviceKey: "admin");
+builder.Services.AddNpgsqlDataSource(defaultConnectionString, serviceKey: "default");
+/* builder.Services.AddSingleton<NpgsqlDataSource>(_ =>
 {
-    var dsBuilder = new NpgsqlDataSourceBuilder(adminConnectionString);
+    var dsBuilder = new NpgsqlDataSourceBuilder(defaultConnectionString);
     return dsBuilder.Build();
-});
+}); */
 
 builder.Services.AddHttpClient("CalendarRequest", client =>
 {

@@ -1,13 +1,13 @@
 <script>
     import { page } from "$app/stores";
-    import { Calendar, User, Settings } from "@lucide/svelte";
+    import { CalendarPlus, User, Settings, ListChecks } from "@lucide/svelte";
 
     const accent = "#52b350";
 
     const navItems = [
-        { icon: Calendar, label: "Calendars", href: "/calendars" },
+        { icon: CalendarPlus, label: "Calendars", href: "/calendars" },
+        { icon: ListChecks, label: "Tasks", href: "/tasks" },
         { icon: User, label: "Profile", href: "/profile" },
-        { icon: Settings, label: "Settings", href: "/settings" },
     ];
 
     $: isActive = (href) => {

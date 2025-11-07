@@ -10,3 +10,5 @@ GRANT authenticated_user TO default_user;
 -- Grant sequence permissions to backend user
 GRANT USAGE, SELECT, UPDATE ON SEQUENCE user_data.users_id_seq TO default_user;
 GRANT USAGE, SELECT, UPDATE ON SEQUENCE user_data.calendars_id_seq TO default_user;
+GRANT USAGE, SELECT, UPDATE ON SEQUENCE user_data.tasks_id_seq TO default_user;
+GRANT USAGE, SELECT, UPDATE ON SEQUENCE user_data.task_groups_id_seq TO default_user;

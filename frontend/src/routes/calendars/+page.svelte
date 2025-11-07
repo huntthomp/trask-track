@@ -139,7 +139,7 @@
 </script>
 
 <div
-    class="fixed top-0 left-0 right-0 pt-[env(safe-area-inset-top)] px-[15px] pb-2 border-b border-gray-800 bg-[#090C0E]"
+    class="fixed top-0 left-0 right-0 pt-[env(safe-area-inset-top)] px-[15px] pb-2 border-b border-gray-800 bg-[#090C0E] h-[45px]"
 >
     <p class="text-3xl font-semibold">Calendars</p>
 </div>
@@ -149,7 +149,7 @@
 >
     <Plus class="w-1/2 h-1/2" />
 </button>
-<div class="mt-[env(safe-area-inset-top)]"></div>
+<div class="min-h-[50px]"></div>
 <NewCalendarModal bind:isOpen={showModal} on:add={handleAddCalendar} />
 
 {#if loading}

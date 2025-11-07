@@ -20,9 +20,19 @@ CREATE TABLE user_data.calendars (
     UNIQUE (user_id, calendar_ics_url)
 );
 
-CREATE TABLE user_data.tasks(
+CREATE TABLE user_data.task_groups (
     id BIGSERIAL PRIMARY KEY,
     calendar_id BIGINT NOT NULL REFERENCES user_data.calendars(id),
+    public_id UUID NOT NULL DEFAULT gen_random_uuid() UNIQUE,
+    group_name TEXT NOT NULL,
+    metadata JSON NOT NULL,
+
+    UNIQUE (calendar_id, group_name)
+);
+
+CREATE TABLE user_data.tasks(
+    id BIGSERIAL PRIMARY KEY,
+    task_group_id BIGINT REFERENCES user_data.task_groups(id),
     ics_event_id TEXT NOT NULL,
     course_id TEXT,
     assignment_id TEXT,
@@ -31,7 +41,7 @@ CREATE TABLE user_data.tasks(
     url TEXT,
     due_date TIMESTAMPTZ,
     status TEXT NOT NULL DEFAULT 'incomplete',
-    UNIQUE(calendar_id, ics_event_id, course_id, assignment_id)
+    UNIQUE(task_group_id, ics_event_id, course_id, assignment_id)
 );
 
 -- Normalize courses, instructors, etc in the future

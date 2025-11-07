@@ -20,4 +20,12 @@ public static class Properties
         await using var cmd = new NpgsqlCommand(sql, connection);
         await cmd.ExecuteNonQueryAsync();
     }
+
+    public static async Task SetTenantWithUserId(NpgsqlConnection connection, int userId)
+    {
+        var sql = $"SET app.tenant = '{userId}';";
+
+        await using var cmd = new NpgsqlCommand(sql, connection);
+        await cmd.ExecuteNonQueryAsync();
+    }
 }

@@ -1,8 +1,8 @@
 namespace TaskTrack.CalendarService.Jobs;
 
-using TaskTrack.CalendarService.Models;
-using TaskTrack.CalendarService.Repositories;
+using System.Text.RegularExpressions;
 using TaskTrack.CalendarService.Utils;
+using TaskTrack.Shared.Models;
 using TaskTrack.Shared.Repositories;
 
 public interface ICalendarSyncHandler
@@ -32,9 +32,9 @@ public class CalendarSyncHandler : ICalendarSyncHandler
         if (calendar == null) throw new Exception("No calendar found in cache");
 
         string calendarData = await GetCalendar(calendar.CalendarIcsUrl);
-        var tasks = ICSUtils.ParseCalendar(calendar.CalendarId, calendarData);
+        var (taskGroups, tasks) = ICSUtils.ParseCalendar(calendar.CalendarId, calendarData);
 
-        await InsertAsync(tasks);
+        await InsertAsync(calendar.UserId, taskGroups, tasks);
     }
     private async Task<string> GetCalendar(string url)
     {
@@ -42,8 +42,9 @@ public class CalendarSyncHandler : ICalendarSyncHandler
         var response = await httpClient.GetAsync(url);
         return await response.Content.ReadAsStringAsync();
     }
-    private async Task InsertAsync(List<NewTask> tasks)
+    private async Task InsertAsync(int userId, List<NewTaskGroup> taskGroups, List<NewTask> tasks)
     {
-        await _taskRepository.InsertAsync(tasks);
+        await _taskRepository.InsertTaskGroupAsync(userId, taskGroups);
+        await _taskRepository.InsertAsync(userId, tasks);
     }
 }
